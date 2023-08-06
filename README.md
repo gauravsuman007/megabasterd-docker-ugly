@@ -1,43 +1,47 @@
-# Dockerfile for noVNC
+# megabasterd-docker
 
-This repository provides the base image of noVNC.  
+A containerized app for megbasterd from https://github.com/tonikelope/megabasterd
 
-# Run (Simple)
+This is an alpine container with noVNC which enables the running app GUI (Megabasterd) to be accessed from a web browser. I used the base image from https://github.com/jlesage/docker-baseimage-gui and configured it to run Megabasterd.
 
-You can run this image as follows.
+This is a different version from the main megabasterd-docker repo with the classic noVNC UI (a bit dated & ugly, hence the repo name suffix).
 
-```bash
-$ docker run -it --rm -p 8080:8080 uphy/novnc-alpine
+## Setup
+### Step 1: Setting up the docker container
+I recommend using docker-compose, a typical script for that would look like:
+```
+version: '3'
+services:
+  megabasterd:
+    image: gauravsuman007/megabasterd:ugly
+    ports:
+      - "5800:5800"
+    volumes:
+#      - "./config:/root:rw"
+      - "./output:/output:rw"
 ```
 
-Please extend this image and install the GUI apps you want,
-because there's no applications installed in this image.
+Here the folder `./output` refers to the location where the files will be downloaded on the disk, feel free to modify it as per your needs(This needs to be configured, see step 2)
+You can also choose to move the `./config` folder to another location but it's not neccessary.
 
-# Run (With your apps)
+Alternatively, you can always clone the repo and build your own image using the provided Dockerfile.
 
-For example, you can run 'xterm' on the docker container and provide the app in the browser as follows.
-
-Create your Dockerfile like below.
-
-```Dockerfile
-FROM uphy/novnc-alpine
-RUN \
-    # Install xterm
-    apk add xterm && \
-    # Append xterm entry to supervisord.conf
-    cd /etc/supervisor/conf.d && \
-    echo '[program:xterm]' >> supervisord.conf && \
-    echo 'command=xterm' >> supervisord.conf && \
-    echo 'autorestart=true' >> supervisord.conf
+There is an additional configuration step needed to get persistence on the MegaBasterd data if using a bind mount. The container needs to be first run without mounting /root. Then when the container is running, copy out the root folder to disk:
 ```
-
-Build and run the image.
-
-```bash
-$ docker build -t mynovnc .
-$ docker run -it --rm -p 8080:8080 mynovnc
+docker cp megabasterd:/root ./config
 ```
+Now stop and start the container again with the volume mounted (Uncomment the line above in the docker-compose.yml for the volume)
 
-Open the browser http://localhost:8080.  
-Click 'Connect'.  
-Then you can see xterm.
+### Step 2: Accessing the app and configuring it
+The web UI can be accessed at port `5800`.
+On the first run, go to the top menu "Edit" -> "Settings", here you should configure the following items:
+- Download folder to point it to /output
+<img width="755" alt="image" src="https://user-images.githubusercontent.com/16671262/191015820-803abd22-6aa3-4c6f-aaa0-85204fd065a4.png">
+
+- MEGA API key (Under Advanced)
+<img width="758" alt="image" src="https://user-images.githubusercontent.com/16671262/191016225-c36cb218-9b70-4e5d-afb8-fafd707fa239.png">
+
+- (Optional) Use Smartproxy.
+
+## Downloading
+The copy paste doesn't work as you would expect in the GUI. To paste a mega link, you first need to open the app clipboard from the top bar and paste your links there. Then you can go to "File" -> "New download" and the links pasted in the clipboard will be accessed automatically.
