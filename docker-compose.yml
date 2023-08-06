@@ -1,7 +1,22 @@
-version: "3"
-
+version: '3'
 services:
-  novnc:
-    build: .
-    ports: 
-      - "8080:8080"
+  megabasterd-alpine:
+    container_name: megabasterd-alpine
+    image: gauravsuman007/megabasterd:test
+    restart: always
+    ports:
+      - "7778:5800"
+#    environment:
+#          VIRTUAL_HOST: $VIRTUAL_HOST
+#          VIRTUAL_PORT: $VIRTUAL_PORT
+#          LETSENCRYPT_HOST: $VIRTUAL_HOST
+#          LETSENCRYPT_EMAIL: $LETSENCRYPT_EMAIL
+    volumes:
+      - "./data:/output:rw"
+      - "/Volumes/Bhandaar/Downloads/megabasterd:/output:rw"
+#
+#networks:
+#  default:
+#    external:
+#      name: nginx_proxy
+

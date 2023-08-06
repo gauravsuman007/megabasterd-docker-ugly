@@ -1,5 +1,7 @@
 FROM alpine:latest
 
+ARG VERSION=7.76
+
 RUN \
     # Install required packages
     apk --update --upgrade add \
@@ -9,6 +11,9 @@ RUN \
       supervisor \
       xvfb \
       x11vnc \
+      openjdk8-jre \
+      curl \
+      unzip \
       && \
     # Install noVNC
     git clone --depth 1 https://github.com/novnc/noVNC.git /root/noVNC && \
@@ -17,6 +22,19 @@ RUN \
     rm -rf /root/noVNC/utils/websockify/.git && \
     apk del git && \
     ln -s /root/noVNC/vnc.html /root/noVNC/index.html
+
+ARG DOWNLOAD_URL=https://github.com/tonikelope/megabasterd/releases/download/v${VERSION}/MegaBasterdLINUX_${VERSION}_portable.zip
+
+RUN \
+    mkdir /output && \
+    cd /tmp && \
+    curl -# -L -o MegaBasterd.zip ${DOWNLOAD_URL} && \
+    unzip -q MegaBasterd.zip && \
+    mv MegaBasterdLINUX/jar/MegaBasterd.jar /root/. && \
+    # Cleanup.
+    apk del curl unzip && \
+    rm -rf /tmp/* /tmp/.[!.]*
+
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 8080
